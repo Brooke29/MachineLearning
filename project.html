@@ -90,7 +90,7 @@ img {
 <pre class="r"><code>train&lt;-read.csv(&quot;https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv&quot;, na.strings=c(&quot;NA&quot;,&quot;#DIV/0!&quot;, &quot;&quot;))  
 test&lt;-read.csv(&quot;https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv&quot;, na.strings=c(&quot;NA&quot;,&quot;#DIV/0!&quot;, &quot;&quot;))  </code></pre>
 <p>To clean the data, we will need to determine columns/variables to be removed: “bookkeeping columns”, zero covariates, and NA values.</p>
-<p><strong>Step 1: Finding “bookkeeping columns”</strong> (look at the first 15 column names, since those columns would most likely show up in the beginning):</p>
+<p><strong>Step 1: Finding “bookkeeping columns”</strong> (we’ll look at the first 15 column names):</p>
 <pre class="r"><code>names(train)[1:15] </code></pre>
 <pre><code>##  [1] &quot;X&quot;                    &quot;user_name&quot;            &quot;raw_timestamp_part_1&quot;
 ##  [4] &quot;raw_timestamp_part_2&quot; &quot;cvtd_timestamp&quot;       &quot;new_window&quot;          
@@ -99,9 +99,9 @@ test&lt;-read.csv(&quot;https://d396qusza40orc.cloudfront.net/predmachlearn/pml-
 ## [13] &quot;kurtosis_picth_belt&quot;  &quot;kurtosis_yaw_belt&quot;    &quot;skewness_roll_belt&quot;</code></pre>
 <p>Columns 1-7 are the “bookkeeping columns” (user name, time stamps, window number, etc). They will not be helpful in building our prediction model.</p>
 <p><strong>Step 2: Find zero covariates</strong>:</p>
-<p>We will use the function <strong>nearZeroVar()</strong> from the <strong>caret</strong> package. <strong>saveMetrics=FALSE</strong> returns the list of indices of near zero variance predictors.</p>
-<pre class="r"><code>suppressMessages(library(caret))
-nearZeroVar(train, saveMetrics=FALSE)  </code></pre>
+<p>We will use the function <strong>nearZeroVar()</strong> from the <strong>caret</strong> package. <strong>saveMetrics=FALSE</strong> (default setting) conveniently returns the positions of zero or near zero variance predictors.</p>
+<pre class="r"><code>library(caret)
+nearZeroVar(train)  </code></pre>
 <pre><code>##  [1]   6  14  17  26  51  52  53  54  55  56  57  58  59  75  78  79  81
 ## [18]  82  89  92 101 127 130 131 134 137 139 142 143 144 145 146 147 148
 ## [35] 149 150</code></pre>
@@ -109,7 +109,7 @@ nearZeroVar(train, saveMetrics=FALSE)  </code></pre>
 <pre class="r"><code>index&lt;-c(1:7, 14,17,26, 51:59, 75, 78, 79, 81, 82, 89, 92, 101, 127, 130, 131, 134, 137, 139, 142:150 )  
 Train&lt;-train[, -index]</code></pre>
 <p><strong>Step 3: NA values</strong></p>
-<p>Lastly, let’s find out the rate of NAs in the remaining columns:</p>
+<p>Now let’s find out the rate of NAs in the remaining columns:</p>
 <pre class="r"><code>naRate&lt;-colSums(is.na(Train))/nrow(Train)  
 naRate  </code></pre>
 <pre><code>##                roll_belt               pitch_belt                 yaw_belt 
@@ -192,13 +192,32 @@ naRate  </code></pre>
 ##                0.0000000                0.0000000                0.0000000 
 ##                   classe 
 ##                0.0000000</code></pre>
-<p>We can see that NA rate is either 0 (i.e., those predictors have no missing values) or 97-98% (i.e., those columns are mostly comprised of missing values). Naturally, we will keep the predictors with 0% NAs and remove the ones with 97-98% NAs.</p>
+<p>We can see that NA rate is either 0% (i.e., those predictors have no missing values) or 97-98% (i.e., those columns are mostly comprised of missing values). Naturally, we will keep the predictors with 0% NAs and remove the ones with 97-98% NAs.</p>
 <pre class="r"><code>Index&lt;-which(naRate==0.00)  
 Train&lt;-Train[, Index]  </code></pre>
 <p>Check to make sure there are no missing values in the remaining predictors:</p>
 <pre class="r"><code>colSums(is.na(Train)) # no missing values</code></pre>
-<pre class="r"><code>dim(Train)</code></pre>
+<pre class="r"><code>dim(Train)  </code></pre>
 <pre><code>## [1] 19622    53</code></pre>
+<pre class="r"><code>names(Train)  </code></pre>
+<pre><code>##  [1] &quot;roll_belt&quot;            &quot;pitch_belt&quot;           &quot;yaw_belt&quot;            
+##  [4] &quot;total_accel_belt&quot;     &quot;gyros_belt_x&quot;         &quot;gyros_belt_y&quot;        
+##  [7] &quot;gyros_belt_z&quot;         &quot;accel_belt_x&quot;         &quot;accel_belt_y&quot;        
+## [10] &quot;accel_belt_z&quot;         &quot;magnet_belt_x&quot;        &quot;magnet_belt_y&quot;       
+## [13] &quot;magnet_belt_z&quot;        &quot;roll_arm&quot;             &quot;pitch_arm&quot;           
+## [16] &quot;yaw_arm&quot;              &quot;total_accel_arm&quot;      &quot;gyros_arm_x&quot;         
+## [19] &quot;gyros_arm_y&quot;          &quot;gyros_arm_z&quot;          &quot;accel_arm_x&quot;         
+## [22] &quot;accel_arm_y&quot;          &quot;accel_arm_z&quot;          &quot;magnet_arm_x&quot;        
+## [25] &quot;magnet_arm_y&quot;         &quot;magnet_arm_z&quot;         &quot;roll_dumbbell&quot;       
+## [28] &quot;pitch_dumbbell&quot;       &quot;yaw_dumbbell&quot;         &quot;total_accel_dumbbell&quot;
+## [31] &quot;gyros_dumbbell_x&quot;     &quot;gyros_dumbbell_y&quot;     &quot;gyros_dumbbell_z&quot;    
+## [34] &quot;accel_dumbbell_x&quot;     &quot;accel_dumbbell_y&quot;     &quot;accel_dumbbell_z&quot;    
+## [37] &quot;magnet_dumbbell_x&quot;    &quot;magnet_dumbbell_y&quot;    &quot;magnet_dumbbell_z&quot;   
+## [40] &quot;roll_forearm&quot;         &quot;pitch_forearm&quot;        &quot;yaw_forearm&quot;         
+## [43] &quot;total_accel_forearm&quot;  &quot;gyros_forearm_x&quot;      &quot;gyros_forearm_y&quot;     
+## [46] &quot;gyros_forearm_z&quot;      &quot;accel_forearm_x&quot;      &quot;accel_forearm_y&quot;     
+## [49] &quot;accel_forearm_z&quot;      &quot;magnet_forearm_x&quot;     &quot;magnet_forearm_y&quot;    
+## [52] &quot;magnet_forearm_z&quot;     &quot;classe&quot;</code></pre>
 <p>Our clean Train dataset has 53 variables: 52 predictors and one outcome variable, <strong>classe</strong>. Before we proceed with the model training, we will clean the test set in the same exact manner we did the train set. Note that the test set has an extra variable <strong>problem_id</strong>, which we will remove as well (not a predictor – another “bookkeeping column”):</p>
 <pre class="r"><code>Test&lt;-test[, -index]  
 Test&lt;-Test[, Index] 
@@ -207,12 +226,12 @@ str(Test$problem_id) # making sure the variable is not of value</code></pre>
 <pre class="r"><code>Test&lt;-Test[, -53] # removing column problem_id
 dim(Test)  </code></pre>
 <pre><code>## [1] 20 52</code></pre>
-<p>The test set now has the same 52 predictors as the training set. The last step in cleaning the data will be to “factorise” outcome variable <strong>classe</strong> in the Train set:</p>
+<p>The test set now has the same 52 predictors as the training set. The last step in cleaning/preparing the data will be to “factorise” outcome variable <strong>classe</strong> in the Train set:</p>
 <pre class="r"><code>Train$classe&lt;-as.factor(Train$classe)  </code></pre>
 </div>
 <div id="prediction-model" class="section level3">
 <h3>Prediction Model</h3>
-<p>In order to estimate test error rate (that is, the error rate on the data that was not used to train the prediction model, also known as out of sample error) and ultimately, determine how well a statistical learning method that we choose can be expected to perform on independent data, we need to perform cross validation. To do so, we will use the the validation set approach and split the clean training set into sub-training and validation sets, with the help of the <strong>createDataPartition()</strong> function from the <strong>caret</strong> package.</p>
+<p>In order to estimate the test error (that is, the error when we apply the prediction model to the data that was not used to train the model, also known as out of sample error) and ultimately, determine how well a statistical learning method that we choose can be expected to perform on independent data, we need to perform cross validation. To do so, we will use the the validation set approach and split the clean training set into sub-training and validation sets, with the help of the <strong>createDataPartition()</strong> function from the <strong>caret</strong> package.</p>
 <p><strong>Step 1: Separate the Train data into training (60% of the Train data) and validation (40% of the Train data) sets, and remove the outcome variable from both resulting sets</strong>:</p>
 <pre class="r"><code>set.seed(357)
 inTrain&lt;-createDataPartition(Train$classe, p=0.6, list=FALSE)  
@@ -275,7 +294,7 @@ cm  </code></pre>
 ## Detection Rate         0.2843   0.1935   0.1744   0.1639   0.1838
 ## Detection Prevalence   0.2843   0.1935   0.1744   0.1639   0.1838
 ## Balanced Accuracy      1.0000   1.0000   1.0000   1.0000   1.0000</code></pre>
-<p>The in sample error rate is virtually non-existent: the accuracy rate for the training set is 100% – with such high accuracy rate, there is a danger of possibly overfitting the training data. If that is indeed the case, we will expect out of sample error to be significantly higher, and the accuracy to be significantly lower. However, even if there is no overfitting, the out of sample error will always be higher than in sample error.</p>
+<p>The <strong>in sample error</strong> is virtually non-existent: the accuracy rate for the training set is 100% – with such high accuracy rate, there is a danger of possibly overfitting the training data. If that is indeed the case, we will expect <strong>out of sample error</strong> to be significantly higher, and the accuracy to be significantly lower. However, even if there is no overfitting, the <strong>out of sample error</strong> will always be higher than <strong>in sample error</strong>.</p>
 <p><strong>Out of Sample Error (a.k.a. test error): Predictions &amp; Confusion Matrix</strong></p>
 <pre class="r"><code>predRF&lt;-predict(RF, newdata)  
 cmRF&lt;-confusionMatrix(predRF, valid$classe) 
@@ -311,10 +330,10 @@ cmRF  </code></pre>
 ## Detection Rate         0.2842   0.1911   0.1732   0.1611   0.1834
 ## Detection Prevalence   0.2859   0.1923   0.1768   0.1616   0.1834
 ## Balanced Accuracy      0.9984   0.9930   0.9945   0.9911   0.9990</code></pre>
-<p>As expected, the out of sample error rates (a.k.a. test error rates) are higher than the in sample/train error rates above, and the accuracy rate is lower. However, the accuracy rate is still very high, and so is Kappa statistic (which indicates how closely the instances classified by the machine learning classifier matched the true results), and error rates for each class seem to be extremely low (see Statistics by Class in the output above):</p>
+<p>As expected, the <strong>out of sample error</strong> rates (a.k.a. test error) are higher than the <strong>in sample/train error</strong> rates above, and the accuracy rate is lower. However, the accuracy rate is still very high, and so is Kappa statistic (which indicates how closely the instances classified by the machine learning classifier matched the true results), and error rates for each class seem to be extremely low (see Statistics by Class in the output above):</p>
 <pre><code>## [1] &quot;Model Accuracy:  0.993&quot;</code></pre>
 <pre><code>## [1] &quot;Kappa Statistic:  0.9911&quot;</code></pre>
-<p>We can see that the reputation of Random Forest as one of the most accurate prediction algorithms is not unfounded.</p>
+<p>We can certainly see that the reputation of Random Forest as one of the most accurate prediction algorithms is not unfounded.</p>
 <p><strong>Independent Test set: Predictions</strong></p>
 <p>We will now predict the results for the Test set and see how our machine learning method performs on independent data:</p>
 <pre class="r"><code>predictions&lt;-predict(RF, Test)  </code></pre>

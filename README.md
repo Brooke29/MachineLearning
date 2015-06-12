@@ -28,4 +28,5 @@ The goal of your project is to predict the manner in which they did the exercise
 
 **Reproducibility** 
 
+
 Due to security concerns with the exchange of R code, your code will not be run during the evaluation by your classmates. Please be sure that if they download the repo, they will be able to view the compiled HTML version of your analysis. 
