@@ -38,7 +38,7 @@ test<-read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.
 
 To clean the data, we will need to determine columns/variables to be removed: "bookkeeping columns", zero covariates, and NA values. 
 
-**Step 1: Finding "bookkeeping columns"** (look at the first 15 column names, since those columns would most likely show up in the beginning):  
+**Step 1: Finding "bookkeeping columns"** (look at the first 15 column names):  
 
 ```{r}
 names(train)[1:15] 
@@ -48,11 +48,11 @@ Columns 1-7 are the "bookkeeping columns" (user name, time stamps, window number
 
 **Step 2: Find zero covariates**:  
 
-We will use the function **nearZeroVar()** from the **caret** package. **saveMetrics=FALSE** returns the list of indices of near zero variance predictors.  
+We will use the function **nearZeroVar()** from the **caret** package. **saveMetrics=FALSE** (default setting) conveniently returns the positions of zero or near zero variance predictors.  
 
-```{r}
-suppressMessages(library(caret))
-nearZeroVar(train, saveMetrics=FALSE)  
+```{r message=FALSE}
+library(caret)
+nearZeroVar(train)  
 ```
 
 We will now remove all columns we have found above:  
@@ -64,14 +64,14 @@ Train<-train[, -index]
 
 **Step 3: NA values**  
 
-Lastly, let's find out the rate of NAs in the remaining columns:  
+Now let's find out the rate of NAs in the remaining columns:  
 
 ```{r}
 naRate<-colSums(is.na(Train))/nrow(Train)  
 naRate  
 ```
 
-We can see that NA rate is either 0 (i.e., those predictors have no missing values) or 97-98% (i.e., those columns are mostly comprised of missing values). Naturally, we will keep the predictors with 0% NAs and remove the ones with 97-98% NAs.  
+We can see that NA rate is either 0% (i.e., those predictors have no missing values) or 97-98% (i.e., those columns are mostly comprised of missing values). Naturally, we will keep the predictors with 0% NAs and remove the ones with 97-98% NAs.  
 
 ```{r}
 Index<-which(naRate==0.00)  
@@ -84,7 +84,8 @@ Check to make sure there are no missing values in the remaining predictors:
 colSums(is.na(Train)) # no missing values
 ```
 ```{r}
-dim(Train)
+dim(Train)  
+names(Train)  
 ```
 
 Our clean Train dataset has 53 variables: 52 predictors and one outcome variable, **classe**. Before we proceed with the model training, we will clean the test set in the same exact manner we did the train set. Note that the test set has an extra variable **problem_id**, which we will remove as well (not a predictor -- another "bookkeeping column"):  
@@ -94,10 +95,10 @@ Test<-test[, -index]
 Test<-Test[, Index] 
 str(Test$problem_id) # making sure the variable is not of value
 Test<-Test[, -53] # removing column problem_id
-dim(Test)  
+dim(Test) 
 ```
 
-The test set now has the same 52 predictors as the training set. The last step in cleaning the data will be to "factorise" outcome variable **classe** in the Train set:  
+The test set now has the same 52 predictors as the training set. The last step in cleaning/preparing the data will be to "factorise" outcome variable **classe** in the Train set:  
 
 ```{r}
 Train$classe<-as.factor(Train$classe)  
@@ -105,7 +106,7 @@ Train$classe<-as.factor(Train$classe)
 
 ### Prediction Model
 
-In order to estimate test error rate (that is, the error rate on the data that was not used to train the prediction model, also known as out of sample error) and ultimately, determine how well a statistical learning method that we choose can be expected to perform on independent data, we need to perform cross validation. To do so, we will use the the validation set approach and split the clean training set into sub-training and validation sets, with the help of the **createDataPartition()** function from the **caret** package. 
+In order to estimate the test error (that is, the error when we apply the prediction model to the data that was not used to train the model, also known as out of sample error) and ultimately, determine how well a statistical learning method that we choose can be expected to perform on independent data, we need to perform cross validation. To do so, we will use the the validation set approach and split the clean training set into sub-training and validation sets, with the help of the **createDataPartition()** function from the **caret** package. 
 
 **Step 1: Separate the Train data into training (60% of the Train data) and validation (40% of the Train data) sets, and remove the outcome variable from both resulting sets**:  
 
@@ -155,7 +156,7 @@ cm<-confusionMatrix(pred, training$classe)
 cm  
 ```
 
-The in sample error rate is virtually non-existent: the accuracy rate for the training set is 100% -- with such high accuracy rate, there is a danger of possibly overfitting the training data. If that is indeed the case, we will expect out of sample error to be significantly higher, and the accuracy to be significantly lower. However, even if there is no overfitting, the out of sample error will always be higher than in sample error.
+The **in sample error** is virtually non-existent: the accuracy rate for the training set is 100% -- with such high accuracy rate, there is a danger of possibly overfitting the training data. If that is indeed the case, we will expect **out of sample error** to be significantly higher, and the accuracy to be significantly lower. However, even if there is no overfitting, the **out of sample error** will always be higher than **in sample error**.
 
 **Out of Sample Error (a.k.a. test error): Predictions & Confusion Matrix**    
 
@@ -165,13 +166,13 @@ cmRF<-confusionMatrix(predRF, valid$classe)
 cmRF  
 ```
 
-As expected, the out of sample error rates (a.k.a. test error rates) are higher than the in sample/train error rates above, and the accuracy rate is lower. However, the accuracy rate is still very high, and so is Kappa statistic (which indicates how closely the instances classified by the machine learning classifier matched the true results), and error rates for each class seem to be extremely low (see Statistics by Class in the output above):  
+As expected, the **out of sample error** rates (a.k.a. test error) are higher than the **in sample/train error** rates above, and the accuracy rate is lower. However, the accuracy rate is still very high, and so is Kappa statistic (which indicates how closely the instances classified by the machine learning classifier matched the true results), and error rates for each class seem to be extremely low (see Statistics by Class in the output above):  
 ```{r echo=FALSE}
 paste("Model Accuracy:", "", round(cmRF$overall["Accuracy"], 4))
 paste("Kappa Statistic:", "", round(cmRF$overall["Kappa"], 4))
 ```
 
-We can see that the reputation of Random Forest as one of the most accurate prediction algorithms is not unfounded.
+We can certainly see that the reputation of Random Forest as one of the most accurate prediction algorithms is not unfounded.
 
 **Independent Test set: Predictions**
 
