@@ -68,10 +68,9 @@ Now let's find out the rate of NAs in the remaining columns:
 
 ```{r}
 naRate<-colSums(is.na(Train))/nrow(Train)  
-naRate  
 ```
 
-We can see that NA rate is either 0% (i.e., those predictors have no missing values) or 97-98% (i.e., those columns are mostly comprised of missing values). Naturally, we will keep the predictors with 0% NAs and remove the ones with 97-98% NAs.  
+Please refer to Appendix (Table 1) to see NA rates. We can see that NA rate is either 0% (i.e., those predictors have no missing values) or 97-98% (i.e., those columns are mostly comprised of missing values). Naturally, we will keep the predictors with 0% NAs and remove the ones with 97-98% NAs.  
 
 ```{r}
 Index<-which(naRate==0.00)  
@@ -85,10 +84,9 @@ colSums(is.na(Train)) # no missing values
 ```
 ```{r}
 dim(Train)  
-names(Train)  
 ```
 
-Our clean Train dataset has 53 variables: 52 predictors and one outcome variable, **classe**. Before we proceed with the model training, we will clean the test set in the same exact manner we did the train set. Note that the test set has an extra variable **problem_id**, which we will remove as well (not a predictor -- another "bookkeeping column"):  
+Our clean Train dataset has 53 variables: 52 predictors and one outcome variable, **classe** (please see Table 2 in Appendix). Before we proceed with the model training, we will clean the test set in the same exact manner we did the train set. Note that the test set has an extra variable **problem_id**, which we will remove as well (not a predictor -- another "bookkeeping column"):  
 
 ```{r}
 Test<-test[, -index]  
@@ -98,7 +96,7 @@ Test<-Test[, -53] # removing column problem_id
 dim(Test) 
 ```
 
-The test set now has the same 52 predictors as the training set. The last step in cleaning/preparing the data will be to "factorise" outcome variable **classe** in the Train set:  
+The test set now has the same 52 predictors as the training set (please see table 3 in Appendix). The last step in cleaning/preparing the data will be to "factorise" outcome variable **classe** in the Train set:  
 
 ```{r}
 Train$classe<-as.factor(Train$classe)  
@@ -138,7 +136,7 @@ RF
 ```
 
 
-Let's take a look the plot of important variables in our model:  
+Let's take a look at the plot of important variables in our model:  
 
 ```{r fig.width=8, fig.height=7}
 varImpPlot(RF, main="Random Forest model: Important Variables", col="blue", pch=19)
@@ -196,4 +194,25 @@ Using the code provided by the Coursera instructors, we will prepare the files w
 pml_write_files(predictions)  
 ```
 
-These results have been submitted and deemed correct (with 100% accuracy), which supports the high accuracy rate of our model.
+These results have been submitted and deemed correct (with 100% accuracy), which supports the high accuracy rate of our model. 
+
+#### Appendix  
+
+**Table 1: NA Rates**:  
+
+```{r}
+naRate  
+```
+
+**Table 2: Variable Names (Train)**:  
+
+```{r}
+names(Train)  
+```
+
+**Table 3:  Variable Names (Test)**:  
+
+```{r}
+names (Test)
+```
+
