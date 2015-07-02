@@ -38,8 +38,7 @@ test<-read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.
 
 To clean the data, we will need to determine columns/variables to be removed: "bookkeeping columns", zero covariates, and NA values. 
 
-**Step 1: Finding "bookkeeping columns"** (we'll look at the first 15 column names):  
-
+**Step 1: Finding "bookkeeping columns"** (look at the first 15 column names):  
 
 ```{r}
 names(train)[1:15] 
@@ -69,10 +68,9 @@ Now let's find out the rate of NAs in the remaining columns:
 
 ```{r}
 naRate<-colSums(is.na(Train))/nrow(Train)  
-naRate  
 ```
 
-We can see that NA rate is either 0% (i.e., those predictors have no missing values) or 97-98% (i.e., those columns are mostly comprised of missing values). Naturally, we will keep the predictors with 0% NAs and remove the ones with 97-98% NAs.  
+Please refer to Appendix (Table 1) to see NA rates. We can see that NA rate is either 0% (i.e., those predictors have no missing values) or 97-98% (i.e., those columns are mostly comprised of missing values). Naturally, we will keep the predictors with 0% NAs and remove the ones with 97-98% NAs.  
 
 ```{r}
 Index<-which(naRate==0.00)  
@@ -86,27 +84,25 @@ colSums(is.na(Train)) # no missing values
 ```
 ```{r}
 dim(Train)  
-names(Train)  
 ```
 
-Our clean Train dataset has 53 variables: 52 predictors and one outcome variable, **classe**. Before we proceed with the model training, we will clean the test set in the same exact manner we did the train set. Note that the test set has an extra variable **problem_id**, which we will remove as well (not a predictor -- another "bookkeeping column"):  
+Our clean Train dataset has 53 variables: 52 predictors and one outcome variable, **classe** (please see Table 2 in Appendix). Before we proceed with the model training, we will clean the test set in the same exact manner we did the train set. Note that the test set has an extra variable **problem_id**, which we will remove as well (not a predictor -- another "bookkeeping column"):  
 
 ```{r}
 Test<-test[, -index]  
 Test<-Test[, Index] 
 str(Test$problem_id) # making sure the variable is not of value
 Test<-Test[, -53] # removing column problem_id
-dim(Test)  
+dim(Test) 
 ```
 
-The test set now has the same 52 predictors as the training set. The last step in cleaning/preparing the data will be to "factorise" outcome variable **classe** in the Train set:  
+The test set now has the same 52 predictors as the training set (please see table 3 in Appendix). The last step in cleaning/preparing the data will be to "factorise" outcome variable **classe** in the Train set:  
 
 ```{r}
 Train$classe<-as.factor(Train$classe)  
 ```
 
 ### Prediction Model
-
 
 In order to estimate the test error (that is, the error when we apply the prediction model to the data that was not used to train the model, also known as out of sample error) and ultimately, determine how well a statistical learning method that we choose can be expected to perform on independent data, we need to perform cross validation. To do so, we will use the the validation set approach and split the clean training set into sub-training and validation sets, with the help of the **createDataPartition()** function from the **caret** package. 
 
@@ -140,7 +136,7 @@ RF
 ```
 
 
-Let's take a look the plot of important variables in our model:  
+Let's take a look at the plot of important variables in our model:  
 
 ```{r fig.width=8, fig.height=7}
 varImpPlot(RF, main="Random Forest model: Important Variables", col="blue", pch=19)
@@ -158,9 +154,7 @@ cm<-confusionMatrix(pred, training$classe)
 cm  
 ```
 
-
-The **in sample error** is virtually non-existent: the accuracy rate for the training set is 100% -- with such high accuracy rate, there is a danger of possibly overfitting the training data. If that is indeed the case, we will expect **out of sample error** to be significantly higher, and the accuracy to be significantly lower. However, even if there is no overfitting, the **out of sample error** will always be higher than **in sample error**. 
-
+The **in sample error** is virtually non-existent: the accuracy rate for the training set is 100% -- with such high accuracy rate, there is a danger of possibly overfitting the training data. If that is indeed the case, we will expect **out of sample error** to be significantly higher, and the accuracy to be significantly lower. However, even if there is no overfitting, the **out of sample error** will always be higher than **in sample error**.
 
 **Out of Sample Error (a.k.a. test error): Predictions & Confusion Matrix**    
 
@@ -171,14 +165,12 @@ cmRF
 ```
 
 As expected, the **out of sample error** rates (a.k.a. test error) are higher than the **in sample/train error** rates above, and the accuracy rate is lower. However, the accuracy rate is still very high, and so is Kappa statistic (which indicates how closely the instances classified by the machine learning classifier matched the true results), and error rates for each class seem to be extremely low (see Statistics by Class in the output above):  
-
 ```{r echo=FALSE}
 paste("Model Accuracy:", "", round(cmRF$overall["Accuracy"], 4))
 paste("Kappa Statistic:", "", round(cmRF$overall["Kappa"], 4))
 ```
 
-
-We can certainly see that the reputation of Random Forest as one of the most accurate prediction algorithms is not unfounded. 
+We can certainly see that the reputation of Random Forest as one of the most accurate prediction algorithms is not unfounded.
 
 **Independent Test set: Predictions**
 
@@ -202,4 +194,24 @@ Using the code provided by the Coursera instructors, we will prepare the files w
 pml_write_files(predictions)  
 ```
 
-These results have been submitted and deemed correct (with 100% accuracy), which supports the high accuracy rate of our model.
+These results have been submitted and deemed correct (with 100% accuracy), which supports the high accuracy rate of our model. 
+
+#### Appendix  
+
+**Table 1: NA Rates**:  
+
+```{r}
+naRate  
+```
+
+**Table 2: Variable Names (Train)**:  
+
+```{r}
+names(Train)  
+```
+
+**Table 3:  Variable Names (Test)**:  
+
+```{r}
+names (Test)
+```
